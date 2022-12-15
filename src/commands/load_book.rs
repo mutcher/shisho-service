@@ -1,12 +1,37 @@
+use curl::easy::Easy;
+
 use crate::tcp_api::{ApiResponse, TcpStreamed};
 use std::{
+    error,
+    fs::File,
+    io::Write,
     net::TcpStream,
-    process::{Command, Stdio},
+    sync::{Arc, Mutex},
 };
 
 use super::common::ShishoCommand;
 
 pub struct LoadBookCommand;
+
+impl LoadBookCommand {
+    fn load_file(url: &str, output_path: &str) -> Result<(), Box<dyn error::Error>> {
+        let mut curl_client = Easy::new();
+        let buffer = Arc::new(Mutex::new(Vec::<u8>::new()));
+        curl_client.url(url)?;
+
+        let local_buffer = buffer.clone();
+        curl_client.write_function(move |data| {
+            local_buffer.lock().unwrap().extend_from_slice(data);
+            Ok(data.len())
+        })?;
+        curl_client.perform()?;
+
+        let mut file = File::create(output_path)?;
+        file.write_all(buffer.clone().lock().unwrap().as_slice())?;
+
+        Ok(())
+    }
+}
 
 impl ShishoCommand for LoadBookCommand {
     fn perform(args: &[String], stream: &mut TcpStream) {
@@ -15,29 +40,12 @@ impl ShishoCommand for LoadBookCommand {
             return;
         }
 
-        let url = args[0].to_string();
-
-        let status = Command::new("curl")
-            .args(["--output", "file.pdf", "--url", url.as_ref()])
-            .stdout(Stdio::null())
-            .status();
-
-        let response = {
-            if status.is_ok() && status.as_ref().unwrap().success() {
-                ApiResponse::ok()
-            } else {
-                ApiResponse::error_from(
-                    status
-                        .as_ref()
-                        .ok()
-                        .unwrap()
-                        .code()
-                        .unwrap()
-                        .to_string()
-                        .as_str(),
-                )
-            }
-        };
-        response.send_to_stream(stream);
+        let url = args[0].as_str();
+        let output_path = "file.pdf";
+        let result = LoadBookCommand::load_file(url, output_path);
+        match result {
+            Ok(_) => ApiResponse::ok().send_to_stream(stream),
+            Err(err) => ApiResponse::error_from(&err.to_string()).send_to_stream(stream),
+        }
     }
 }
