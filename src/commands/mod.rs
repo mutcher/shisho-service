@@ -5,8 +5,8 @@ mod get_book;
 mod delete_book;
 mod unknown_command;
 
+pub use common::Book;
 pub use common::ShishoCommand;
-
 pub use load_book::LoadBookCommand;
 pub use add::AddCommand;
 pub use get_book::GetBookCommand;

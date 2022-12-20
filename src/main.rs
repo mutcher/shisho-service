@@ -1,5 +1,6 @@
 mod commands;
 mod tcp_api;
+mod bibtex_parser;
 
 use std::{
     io::{BufRead, BufReader},
@@ -8,7 +9,7 @@ use std::{
 
 use commands::{
     AddCommand, DeleteBookCommand, GetAllBooksCommand, GetBookCommand, LoadBookCommand,
-    ShishoCommand, UknownCommand,
+    ShishoCommand, UknownCommand, Book,
 };
 
 fn process_command(command: &str, args: &[String], stream: &mut TcpStream) -> bool {

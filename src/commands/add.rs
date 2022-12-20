@@ -6,20 +6,22 @@ pub struct AddCommand;
 
 impl Book {
     fn parse(data: &[String]) -> Result<Self, &str> {
-        if data.len() != 3 {
-            return Err("Incorrent number of parameters");
-        }
+        todo!()
 
-        let (name, authors, year_str) = (&data[0], &data[1], &data[2]);
+        // if data.len() != 3 {
+        //     return Err("Incorrent number of parameters");
+        // }
 
-        let book_year = u32::from_str_radix(year_str.as_str(), 10)
-            .map_err::<&str, _>(|_| "Cannot parse book year")?;
+        // let (name, authors, year_str) = (&data[0], &data[1], &data[2]);
 
-        return Ok(Book {
-            name: name.to_string(),
-            authors: authors.to_string(),
-            year: book_year,
-        });
+        // let book_year = u32::from_str_radix(year_str.as_str(), 10)
+        //     .map_err::<&str, _>(|_| "Cannot parse book year")?;
+
+        // return Ok(Book {
+        //     name: name.to_string(),
+        //     authors: authors.to_string(),
+        //     year: book_year,
+        // });
     }
 }
 
